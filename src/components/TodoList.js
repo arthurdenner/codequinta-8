@@ -21,6 +21,17 @@ class TodoList extends Component {
     });
   };
 
+  deleteTodo = id => {
+    const { deleteTodo, todos } = this.props;
+
+    deleteTodo({
+      variables: { id },
+      update: () => {
+        todos.refetch();
+      },
+    });
+  };
+
   render() {
     const { todos } = this.props;
     const { newTodoText } = this.state;
@@ -32,7 +43,12 @@ class TodoList extends Component {
         ) : (
           <div style={{ marginBottom: '0.5em' }}>
             {todos.allTodoes.map((todo, idx) => (
-              <TodoItem key={todo.id} idx={idx} todo={todo} />
+              <TodoItem
+                key={todo.id}
+                idx={idx}
+                todo={todo}
+                onDelete={this.deleteTodo}
+              />
             ))}
           </div>
         )}
@@ -53,22 +69,29 @@ const TodosQuery = gql`
     allTodoes {
       id
       text
-      completed
     }
   }
 `;
 
-const TodoMutation = gql`
+const AddTodoMutation = gql`
   mutation($text: String!) {
     createTodo(text: $text) {
       id
       text
-      completed
+    }
+  }
+`;
+
+const DeleteTodoMutation = gql`
+  mutation($id: ID!) {
+    deleteTodo(id: $id) {
+      id
     }
   }
 `;
 
 export default compose(
   graphql(TodosQuery, { name: 'todos' }),
-  graphql(TodoMutation, { name: 'addTodo' })
+  graphql(AddTodoMutation, { name: 'addTodo' }),
+  graphql(DeleteTodoMutation, { name: 'deleteTodo' })
 )(TodoList);
